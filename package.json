@@ -1,0 +1,22 @@
+{
+  "name": "vormaza-bot",
+  "version": "1.0.0",
+  "description": "Vormaza Discord Chatbot with OpenAI",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "chatbot",
+    "openai"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1",
+    "openai": "^4.20.1"
+  }
+}
