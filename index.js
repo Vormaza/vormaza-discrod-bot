@@ -90,15 +90,25 @@ IDENTITY RULES
 
 Keep responses short and natural.`;
 
-// Generate AI response using OpenAI
-async function getAIResponse(userMessage) {
+// Generate AI response using OpenAI (with optional reply context)
+async function getAIResponse(userMessage, replyContext = null) {
   try {
+    // Build messages array with optional context
+    const messages = [
+      { role: 'system', content: SYSTEM_PROMPT },
+    ];
+
+    // If there's a replied message, include it as context
+    if (replyContext) {
+      messages.push({ role: 'assistant', content: replyContext });
+    }
+
+    // Add current user message
+    messages.push({ role: 'user', content: userMessage });
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userMessage },
-      ],
+      messages: messages,
       max_tokens: 120,
       temperature: 0.7,
     });
@@ -107,6 +117,19 @@ async function getAIResponse(userMessage) {
   } catch (error) {
     console.error('OpenAI API Error:', error.message);
     return "Sorry, I'm having trouble thinking right now. Please try again later! 😅";
+  }
+}
+
+// Fetch replied message content for context
+async function getRepliedMessageContent(message) {
+  if (!message.reference) return null;
+
+  try {
+    const repliedMessage = await message.channel.messages.fetch(message.reference.messageId);
+    // Return the content of the message being replied to
+    return repliedMessage.content || null;
+  } catch {
+    return null;
   }
 }
 
@@ -171,8 +194,11 @@ client.on('messageCreate', async (message) => {
     // Show typing indicator
     await message.channel.sendTyping();
 
-    // Get AI response
-    const aiResponse = await getAIResponse(userMessage);
+    // Get context from replied message (if user is replying)
+    const replyContext = await getRepliedMessageContent(message);
+
+    // Get AI response with context
+    const aiResponse = await getAIResponse(userMessage, replyContext);
 
     // Send response
     await message.reply(aiResponse);
